@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyOS - Desktop</title>
+    <style>
+        :root {
+            --accent-color: rgb(146, 31, 117);
+            --bg-image: url('../NiltyOswllpaper.jpg');
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #desktop-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .desktop-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ---------------- TASKLEISTE ---------------- */
+        .taskbar {
+            height: 55px;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            z-index: 10000;
+        }
+
+        .taskbar-left,
+        .taskbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .start-btn {
+            padding: 8px 18px;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .start-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .taskbar-apps {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .taskbar-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .taskbar-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .taskbar-icon img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .system-tray {
+            font-size: 13px;
+            font-family: monospace;
+            color: #eee;
+            background-color: rgba(255, 255, 255, 0.08);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        /* ---------------- OS FENSTER ---------------- */
+        .os-window {
+            position: absolute;
+            top: 80px;
+            left: 120px;
+            width: 580px;
+            height: 380px;
+            background-color: rgba(20, 20, 20, 0.92);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            animation: popIn 0.2s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.92);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .window-header {
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .window-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: #ff5f56;
+            border: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: transparent;
+            font-size: 10px;
+            line-height: 14px;
+            text-align: center;
+        }
+
+        .close-btn:hover {
+            color: black;
+        }
+
+        .window-content {
+            padding: 18px;
+            flex: 1;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        /* ---------------- TERMINAL STYLES ---------------- */
+        .terminal-body {
+            background-color: #0d0d0d;
+            color: #00ff66;
+            font-family: 'Consolas', 'Courier New', monospace;
+            padding: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .terminal-output {
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .terminal-line {
+            display: flex;
+            margin-top: 5px;
+        }
+
+        .terminal-prompt {
+            color: #3399ff;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #00ff66;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            flex: 1;
+        }
+
+        /* ---------------- EXPLORER STYLES ---------------- */
+        .explorer-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .explorer-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .explorer-btn:hover {
+            background: #444;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-item .icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+
+        /* ---------------- SETTINGS STYLES ---------------- */
+        .settings-section {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .settings-section h4 {
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+
+        .color-picker-btns button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        /* ---------------- POPUP MENÜS ---------------- */
+        #system-menu,
+        #power-menu {
+            position: absolute;
+            bottom: 65px;
+            background-color: rgba(20, 20, 20, 0.94);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            z-index: 9999;
+        }
+
+        #system-menu {
+            left: 50%;
+            transform: translateX(-50%);
+            width: 360px;
+            gap: 15px;
+        }
+
+        #power-menu {
+            left: 15px;
+            width: 180px;
+            gap: 5px;
+        }
+
+        #system-menu input {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #111;
+            color: white;
+            outline: none;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .app-grid-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .app-grid-item:hover {
+            background: var(--accent-color);
+        }
+
+        .power-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .power-item:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="desktop-screen">
+        <div class="desktop-area" id="desktop"></div>
+
+        <!-- System Startmenü (Rose) -->
+        <div id="system-menu">
+            <input type="text" placeholder="Suche in MyOS...">
+            <div class="app-grid">
+                <div class="app-grid-item" onclick="openApp('Settings'); toggleSystemMenu();">⚙️ Settings</div>
+                <div class="app-grid-item" onclick="openApp('Terminal'); toggleSystemMenu();">💻 Terminal</div>
+                <div class="app-grid-item" onclick="openApp('Explorer'); toggleSystemMenu();">📁 Dateien</div>
+                <div class="app-grid-item" onclick="openBrowser(); toggleSystemMenu();">🌐 Browser</div>
+                <div class="app-grid-item" onclick="openApp('Store'); toggleSystemMenu();">🛍️ Store</div>
+            </div>
+        </div>
+
+        <!-- Power Menü (Start) -->
+        <div id="power-menu">
+            <div class="power-item" onclick="location.href='../Login.html'">👤 Abmelden</div>
+            <div class="power-item" onclick="location.href='../Boot.html'">🔄 Neustarten</div>
+            <div class="power-item" onclick="shutdownOS()">🔌 Herunterfahren</div>
+        </div>
+
+        <!-- Taskleiste -->
+        <div class="taskbar">
+            <div class="taskbar-left">
+                <button class="start-btn" onclick="togglePowerMenu()">Start</button>
+            </div>
+
+            <div class="taskbar-apps">
+                <div class="taskbar-icon" title="System" onclick="toggleSystemMenu()">
+                    <img src="../rose.png" alt="System">
+                </div>
+                <div class="taskbar-icon" title="Einstellungen" onclick="openApp('Settings')">
+                    <img src="../settings-xxl.png" alt="Settings">
+                </div>
+                <div class="taskbar-icon" title="Terminal" onclick="openApp('Terminal')">
+                    <img src="../Terminalicon2.png" alt="Terminal">
+                </div>
+                <div class="taskbar-icon" title="Datei-Explorer" onclick="openApp('Explorer')">
+                    <img src="../folder.png" alt="Explorer">
+                </div>
+                <div class="taskbar-icon" title="Web-Browser" onclick="openBrowser()">
+                    <img src="../browser.png" alt="Browser">
+                </div>
+                <div class="taskbar-icon" title="App Store" onclick="openApp('Store')">
+                    <img src="../store.png" alt="Store">
+                </div>
+            </div>
+
+            <div class="taskbar-right">
+                <div class="system-tray">
+                    <span id="clock">00:00:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ---------------- 1. VIRTUELLES UNIX DATEISYSTEM (VFS) ---------------- */
+const vfs = {
+    "name": "/",
+    "type": "dir",
+    "children": {
+        "bin": {
+            "type": "dir",
+            "children": {
+                "bash": { "type": "file", "content": "Binary executable [bash]" },
+                "sh": { "type": "file", "content": "Binary executable [sh]" }
+            }
+        },
+        "etc": {
+            "type": "dir",
+            "children": {
+                "hostname": { "type": "file", "content": "myos-v1" },
+                "os-release": { "type": "file", "content": "NAME=\"MyOS\"\nVERSION=\"1.0.0\"\nID=nilty-linux" }
+            }
+        },
+        "home": {
+            "type": "dir",
+            "children": {
+                "user1": {
+                    "type": "dir",
+                    "children": {
+                        "Dokumente": {
+                            "type": "dir",
+                            "children": {
+                                "projekt.txt": { "type": "file", "content": "Medientechnik Web-OS Projekt 2026." }
+                            }
+                        },
+                        "Bilder": {
+                            "type": "dir",
+                            "children": {
+                                "wallpaper_info.txt": { "type": "file", "content": "Hintergrundbild: NiltyOswllpaper.jpg" }
+                            }
+                        },
+                        "willkommen.txt": { "type": "file", "content": "Willkommen in MyOS UNIX System v1.0.0!\nBenutze das Terminal oder den Explorer." }
+                    }
+                }
+            }
+        },
+        "var": {
+            "type": "dir",
+            "children": {
+                "log": {
+                    "type": "dir",
+                    "children": {
+                        "syslog": { "type": "file", "content": "[INFO] System boot success.\n[INFO] User1 logged in." }
+                    }
+                }
+            }
+        }
+    }
+};
+
+let currentTerminalPath = ["home", "user1"];
+let currentExplorerPath = ["home", "user1"];
+
+function getNodeByPath(pathArray) {
+    let current = vfs;
+    for (let dir of pathArray) {
+        if (current.children && current.children[dir]) {
+            current = current.children[dir];
+        } else {
+            return null;
+        }
+    }
+    return current;
+}
+
+/* ---------------- 2. UI LOGIK & CLOCK ---------------- */
+function updateClock() {
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function toggleSystemMenu() {
+    const menu = document.getElementById('system-menu');
+    document.getElementById('power-menu').style.display = 'none';
+    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function togglePowerMenu() {
+    const menu = document.getElementById('power-menu');
+    document.getElementById('system-menu').style.display = 'none';
+    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function shutdownOS() {
+    document.body.innerHTML = `
+        <div style="background:black; height:100vh; display:flex; justify-content:center; align-items:center; color:white; font-family:monospace;">
+            <h2>MyOS wurde heruntergefahren.</h2>
+        </div>
+    `;
+}
+
+/* ---------------- 3. BROWSER ---------------- */
+function openBrowser() {
+    const defaultUrl = 'https://www.wikipedia.org';
+
+    const browserHTML = `
+        <div class="browser-container" style="display:flex; flex-direction:column; height:100%; background:#202124;">
+            <div style="display:flex; gap:6px; padding:8px; background:#2f3136; border-bottom:1px solid #1e1f22; align-items:center;">
+                <button onclick="reloadBrowserFrame(this)" style="background:#36393f; border:1px solid #4f545c; color:#fff; padding:4px 10px; border-radius:4px; cursor:pointer;">↻</button>
+                <input type="text" class="browser-url-input" value="${defaultUrl}"
+                       onkeydown="if(event.key === 'Enter') navigateBrowserFrame(this)"
+                       placeholder="URL eingeben und Enter drücken..."
+                       style="flex:1; padding:6px 12px; background:#1e1f22; color:#dcddde; border:1px solid #4f545c; border-radius:4px; outline:none; font-size:13px;">
+                <button onclick="navigateBrowserFrame(this)" style="background:var(--accent-color); border:none; color:#fff; padding:6px 14px; border-radius:4px; cursor:pointer; font-weight:bold;">Los</button>
+                <button onclick="openInNewTab(this)" title="In neuem Tab öffnen" style="background:#36393f; border:1px solid #4f545c; color:#fff; padding:4px 10px; border-radius:4px; cursor:pointer;">↗</button>
+            </div>
+            <iframe class="browser-frame" src="${defaultUrl}" style="flex:1; width:100%; border:none; background:#fff;"></iframe>
+        </div>
+    `;
+
+    openApp('Web-Browser', browserHTML);
+}
+
+function navigateBrowserFrame(element) {
+    const container = element.closest('.browser-container');
+    const input = container.querySelector('.browser-url-input');
+    const iframe = container.querySelector('.browser-frame');
+
+    let url = input.value.trim();
+    if (!url) return;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+    }
+    input.value = url;
+    iframe.src = url;
+}
+
+function reloadBrowserFrame(element) {
+    const iframe = element.closest('.browser-container').querySelector('.browser-frame');
+    iframe.src = iframe.src;
+}
+
+function openInNewTab(element) {
+    const url = element.closest('.browser-container').querySelector('.browser-url-input').value.trim();
+    if (url) window.open(url, '_blank');
+}
+
+/* ---------------- 4. FENSTER MANAGEMENT ---------------- */
+function openApp(appName, customContent = null) {
+    const desktop = document.getElementById('desktop');
+    const windowId = 'win-' + appName.replace(/\s+/g, '');
+    if (document.getElementById(windowId)) return;
+
+    const win = document.createElement('div');
+    win.className = 'os-window';
+    win.id = windowId;
+
+    if (appName === 'Web-Browser') {
+        win.style.width = '800px';
+        win.style.height = '520px';
+    }
+
+    let bodyContent = "";
+
+    if (customContent) {
+        bodyContent = customContent;
+    } else if (appName === 'Terminal') {
+        bodyContent = `
+            <div class="terminal-body" id="term-body">
+                <div class="terminal-output" id="term-output">MyOS UNIX Kernel v1.0.0 (x86_64-web)\nTippe 'help' für eine Liste der Befehle.\n</div>
+                <div class="terminal-line">
+                    <span class="terminal-prompt" id="term-prompt">user1@myos:~/$</span>
+                    <input type="text" class="terminal-input" id="term-input" autofocus onkeydown="handleTerminalCommand(event)">
+                </div>
+            </div>
+        `;
+    } else if (appName === 'Explorer') {
+        bodyContent = `<div id="explorer-content"></div>`;
+    } else if (appName === 'Settings') {
+        bodyContent = `
+            <h3>⚙️ Einstellungen</h3><br>
+            <div class="settings-section">
+                <h4>Akzentfarbe wählen:</h4>
+                <div class="color-picker-btns">
+                    <button style="background: rgb(146, 31, 117);" onclick="setAccentColor('rgb(146, 31, 117)')"></button>
+                    <button style="background: #0078d4;" onclick="setAccentColor('#0078d4')"></button>
+                    <button style="background: #2b88d8;" onclick="setAccentColor('#2b88d8')"></button>
+                    <button style="background: #107c41;" onclick="setAccentColor('#107c41')"></button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>System-Informationen:</h4>
+                <p><b>OS:</b> MyOS Web Edition</p>
+                <p><b>Version:</b> 1.0.0</p>
+                <p><b>Kernel:</b> JS Virtual Shell 2026</p>
+                <p><b>Entwickler:</b> Nilty Media</p>
+            </div>
+        `;
+    } else {
+        bodyContent = `<p>App <b>${appName}</b> wurde gestartet.</p>`;
+    }
+
+    const noPadding = (appName === 'Terminal' || appName === 'Web-Browser');
+
+    win.innerHTML = `
+        <div class="window-header">
+            <span class="window-title">${appName}</span>
+            <button class="close-btn" onclick="closeApp('${windowId}')">✕</button>
+        </div>
+        <div class="window-content" style="${noPadding ? 'padding:0; overflow:hidden;' : ''}">
+            ${bodyContent}
+        </div>
+    `;
+
+    desktop.appendChild(win);
+
+    if (appName === 'Explorer') renderExplorer();
+    if (appName === 'Terminal') updateTerminalPrompt();
+}
+
+function closeApp(windowId) {
+    const win = document.getElementById(windowId);
+    if (win) win.remove();
+}
+
+/* ---------------- 5. TERMINAL LOGIK ---------------- */
+function updateTerminalPrompt() {
+    const promptEl = document.getElementById('term-prompt');
+    if (promptEl) {
+        const pathStr = "/" + currentTerminalPath.join("/");
+        promptEl.innerText = `user1@myos:${pathStr}$`;
+    }
+}
+
+function handleTerminalCommand(e) {
+    if (e.key === 'Enter') {
+        const inputEl = document.getElementById('term-input');
+        const outputEl = document.getElementById('term-output');
+        const cmd = inputEl.value.trim();
+        const promptText = document.getElementById('term-prompt').innerText;
+
+        outputEl.innerText += `${promptText} ${cmd}\n`;
+        inputEl.value = '';
+
+        if (cmd.length > 0) {
+            processCommand(cmd, outputEl);
+        }
+
+        updateTerminalPrompt();
+        const termBody = document.getElementById('term-body');
+        termBody.scrollTop = termBody.scrollHeight;
+    }
+}
+
+function processCommand(cmdStr, outputEl) {
+    const parts = cmdStr.split(' ');
+    const command = parts[0].toLowerCase();
+    const arg = parts[1];
+
+    const currentNode = getNodeByPath(currentTerminalPath);
+
+    switch (command) {
+        case 'help':
+            outputEl.innerText += "Verfügbare Befehle:\n  ls         - Ordnerinhalt anzeigen\n  cd [dir]   - Verzeichnis wechseln (cd .. für zurück)\n  pwd        - Aktuellen Pfad anzeigen\n  cat [file] - Dateiinhalt ausgeben\n  clear      - Terminal leeren\n  whoami     - Aktuellen Benutzer anzeigen\n";
+            break;
+        case 'pwd':
+            outputEl.innerText += "/" + currentTerminalPath.join("/") + "\n";
+            break;
+        case 'whoami':
+            outputEl.innerText += "user1\n";
+            break;
+        case 'clear':
+            outputEl.innerText = "";
+            break;
+        case 'ls':
+            if (currentNode && currentNode.type === 'dir') {
+                const items = Object.keys(currentNode.children).map(key => {
+                    return currentNode.children[key].type === 'dir' ? key + '/' : key;
+                });
+                outputEl.innerText += items.join("  ") + "\n";
+            }
+            break;
+        case 'cd':
+            if (!arg || arg === '~') {
+                currentTerminalPath = ["home", "user1"];
+            } else if (arg === '..') {
+                if (currentTerminalPath.length > 0) currentTerminalPath.pop();
+            } else {
+                const target = arg.replace('/', '');
+                if (currentNode.children && currentNode.children[target] && currentNode.children[target].type === 'dir') {
+                    currentTerminalPath.push(target);
+                } else {
+                    outputEl.innerText += `cd: Ordner nicht gefunden: ${arg}\n`;
+                }
+            }
+            break;
+        case 'cat':
+            if (!arg) {
+                outputEl.innerText += "Verwendung: cat [dateiname]\n";
+            } else {
+                if (currentNode.children && currentNode.children[arg] && currentNode.children[arg].type === 'file') {
+                    outputEl.innerText += currentNode.children[arg].content + "\n";
+                } else {
+                    outputEl.innerText += `cat: Datei nicht gefunden: ${arg}\n`;
+                }
+            }
+            break;
+        default:
+            outputEl.innerText += `Befehl nicht gefunden: ${command}. Tippe 'help'.\n`;
+    }
+}
+
+/* ---------------- 6. EXPLORER LOGIK ---------------- */
+function renderExplorer() {
+    const container = document.getElementById('explorer-content');
+    if (!container) return;
+
+    const currentNode = getNodeByPath(currentExplorerPath);
+    const currentPathStr = "/" + currentExplorerPath.join("/");
+
+    let itemsHtml = "";
+
+    if (currentNode && currentNode.children) {
+        for (let name in currentNode.children) {
+            const item = currentNode.children[name];
+            const icon = item.type === 'dir' ? '📁' : '📄';
+            itemsHtml += `
+                <div class="file-item" onclick="explorerNavigate('${name}', '${item.type}')">
+                    <div class="icon">${icon}</div>
+                    <span>${name}</span>
+                </div>
+            `;
+        }
+    }
+
+    container.innerHTML = `
+        <div class="explorer-bar">
+            <button class="explorer-btn" onclick="explorerGoUp()">⬆️ Zurück</button>
+            <span>Pfad: <b>${currentPathStr}</b></span>
+        </div>
+        <div class="file-grid">
+            ${itemsHtml || '<i>Ordner ist leer</i>'}
+        </div>
+    `;
+}
+
+function explorerNavigate(name, type) {
+    if (type === 'dir') {
+        currentExplorerPath.push(name);
+        renderExplorer();
+    } else {
+        const node = getNodeByPath(currentExplorerPath);
+        const file = node.children[name];
+        alert(`--- Datei: ${name} ---\n\n${file.content}`);
+    }
+}
+
+function explorerGoUp() {
+    if (currentExplorerPath.length > 0) {
+        currentExplorerPath.pop();
+        renderExplorer();
+    }
+}
+
+/* ---------------- 7. EINSTELLUNGEN LOGIK ---------------- */
+function setAccentColor(color) {
+    document.documentElement.style.setProperty('--accent-color', color);
+}
+    </script>
+</body>
+
+</html> 

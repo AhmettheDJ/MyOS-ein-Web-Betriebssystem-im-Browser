@@ -576,6 +576,54 @@ function openInNewTab(element) {
     if (url) window.open(url, '_blank');
 }
 
+
+        /* ---------------- VERSCHIEBBARE FENSTER ---------------- */
+let topZ = 100;
+
+function focusWindow(win) {
+    topZ++;
+    win.style.zIndex = topZ;
+}
+
+function makeDraggable(win) {
+    const header = win.querySelector('.window-header');
+    const desktop = document.getElementById('desktop');
+    header.style.cursor = 'grab';
+    header.style.touchAction = 'none';
+
+    // Klick irgendwo im Fenster holt es nach vorne
+    win.addEventListener('pointerdown', () => focusWindow(win));
+
+    header.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.close-btn')) return; // Schließen-Button nicht ziehen
+
+        const offsetX = e.clientX - win.offsetLeft;
+        const offsetY = e.clientY - win.offsetTop;
+        header.setPointerCapture(e.pointerId);
+        header.style.cursor = 'grabbing';
+
+        function onMove(ev) {
+            let x = ev.clientX - offsetX;
+            let y = ev.clientY - offsetY;
+            // Fenster im Desktop-Bereich halten
+            x = Math.max(0, Math.min(x, desktop.clientWidth - win.offsetWidth));
+            y = Math.max(0, Math.min(y, desktop.clientHeight - win.offsetHeight));
+            win.style.left = x + 'px';
+            win.style.top = y + 'px';
+        }
+
+        function onUp(ev) {
+            header.releasePointerCapture(ev.pointerId);
+            header.style.cursor = 'grab';
+            header.removeEventListener('pointermove', onMove);
+            header.removeEventListener('pointerup', onUp);
+        }
+
+        header.addEventListener('pointermove', onMove);
+        header.addEventListener('pointerup', onUp);
+    });
+}
+        
 /* ---------------- 4. FENSTER MANAGEMENT ---------------- */
 function openApp(appName, customContent = null) {
     const desktop = document.getElementById('desktop');
@@ -644,6 +692,13 @@ function openApp(appName, customContent = null) {
     `;
 
     desktop.appendChild(win);
+
+        desktop.appendChild(win);
+    makeDraggable(win);   // <-- neu
+    focusWindow(win);     // <-- neu: neues Fenster liegt oben
+
+    if (appName === 'Explorer') renderExplorer();
+    if (appName === 'Terminal') updateTerminalPrompt();
 
     if (appName === 'Explorer') renderExplorer();
     if (appName === 'Terminal') updateTerminalPrompt();

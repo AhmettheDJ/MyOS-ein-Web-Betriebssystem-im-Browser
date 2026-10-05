@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+
+# Serve MYos.html as the default page at the site root
+[[redirects]]
+  from = "/"
+  to = "/MYos.html"
+  status = 200

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boot - MyOS</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: black;
+            /* Flexbox um alles mittig zu zentrieren */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: monospace; /* Sieht mehr nach Konsole/Boot aus */
+        }
+
+        .Boot-Text {
+            color: white;
+            -webkit-text-stroke: 1.5px rgb(146, 31, 117);
+            font-size: 40px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 100px; /* Verhindert, dass das Layout springt, während getippt wird */
+        }
+
+        .logo {
+            margin-top: 40px;
+            opacity: 0; /* Startet komplett unsichtbar (0%) */
+            transition: opacity 2s ease-in-out; /* Das sorgt für das smoothe Einblenden */
+        }
+
+        /* Diese Klasse wird später per JavaScript hinzugefügt */
+        .logo.show {
+            opacity: 1; /* Sichtbar (100%) */
+        }
+
+        .logo img {
+            max-width: 150px; /* Passe die Größe deines Logos hier an */
+        }
+    </style>
+</head>
+<body>
+    <h1 class="Boot-Text" id="bootText"></h1>
+    
+    <div class="logo" id="osLogo">
+        <!-- Hier kommt dein echtes Logo rein -->
+        <img src="rose.png" alt="Oslogo">
+    </div>
+
+     <script>
+        // Der Text, der getippt werden soll
+        const textLines = ["MyOS by Nilty Media", "Version 1.0.0"];
+        const bootTextElement = document.getElementById("bootText");
+        const logoElement = document.getElementById("osLogo");
+        
+        let lineIndex = 0;
+        let charIndex = 0;
+        const typingSpeed = 80; // Geschwindigkeit in Millisekunden pro Buchstabe
+
+        // 1. Text Animation (Typewriter)
+        function typeWriter() {
+            if (lineIndex < textLines.length) {
+                if (charIndex < textLines[lineIndex].length) {
+                    // Buchstabe für Buchstabe hinzufügen
+                    bootTextElement.innerHTML += textLines[lineIndex].charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeWriter, typingSpeed);
+                } else {
+                    // Zeile fertig -> Zeilenumbruch einfügen und nächste Zeile starten
+                    bootTextElement.innerHTML += "<br>";
+                    lineIndex++;
+                    charIndex = 0;
+                    setTimeout(typeWriter, 400); // Kurze Pause zwischen den Zeilen
+                }
+            } else {
+                // Text-Animation ist komplett fertig -> Logo einblenden
+                showLogoAndRedirect();
+            }
+        }
+
+        // 2. Logo Animation & Weiterleitung
+        function showLogoAndRedirect() {
+            // Fügt die CSS-Klasse hinzu, wodurch die Opacity von 0 auf 1 animiert wird
+            logoElement.classList.add("show");
+
+            // Warte 3 Sekunden (2s für die Logo-Animation + 1s zum Anschauen), dann weiterleiten
+            setTimeout(() => {
+                window.location.href = "Login.html";
+            }, 3000); 
+        }
+
+        // Startet den gesamten Prozess, sobald die Seite geladen ist
+        window.onload = () => {
+            typeWriter();
+        };
+     </script>
+</body>
+</html>

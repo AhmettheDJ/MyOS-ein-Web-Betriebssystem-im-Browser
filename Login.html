@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyOS - Login</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url('NiltyOswllpaper.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Etwas moderner für ein OS */
+            color: white;
+            overflow: hidden;
+            /* Verhindert Scrollbalken */
+        }
+
+        /* Das Login-Fenster */
+        #login-screen {
+            background-color: rgba(0, 0, 0, 0.6);
+            /* Leicht transparenter, dunkler Hintergrund */
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            /* Macht den Hintergrund hinter der Box unscharf (sehr cooler OS-Effekt) */
+            transition: opacity 0.5s ease-out;
+        }
+
+        .users {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            /* Abstand zwischen Buttons */
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: rgb(146, 31, 117);
+            /* Deine Nilty-Farbe aus dem Boot-Screen */
+        }
+
+        /* Der Desktop (anfangs versteckt) */
+        #desktop-screen {
+            display: none;
+            /* Erstmal unsichtbar */
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        /* Die Taskleiste unten */
+        .taskbar {
+            margin-top: auto;
+            /* Drückt die Taskleiste nach ganz unten */
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN BEREICH -->
+    <div id="login-screen">
+        <h2>Select User</h2>
+        <div class="users">
+            <button onclick="loginUser('User 1')">User 1</button>
+            <button onclick="loginUser('User 2')">User 2</button>
+            <button>Add a user...</button>
+        </div>
+    </div>
+
+    <!-- DESKTOP BEREICH (anfangs versteckt) -->
+    <div id="desktop-screen">
+        <div style="padding: 20px;">
+            <h1 id="welcome-text">Willkommen!</h1>
+            <!-- Hier kommen später deine Desktop-Icons (Divs) hin -->
+        </div>
+
+        <div class="taskbar">
+            <span>Start</span>
+        </div>
+    </div>
+
+   <script>
+    function loginUser(username) {
+        const loginScreen = document.getElementById('login-screen');
+
+        // 1. Login-Screen sanft ausblenden
+        loginScreen.style.opacity = "0";
+
+        // 2. Nach 500ms auf die HTML-Datei des Users weiterleiten
+        setTimeout(() => {
+            if (username === 'User 1') {
+                window.location.href = "users/user1.html";
+            } else if (username === 'User 2') {
+                window.location.href = "user2_desktop.html";
+            }
+        }, 500);
+    }
+</script>
+</body>
+
+</html>

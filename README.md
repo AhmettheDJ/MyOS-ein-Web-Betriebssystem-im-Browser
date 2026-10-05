@@ -38,6 +38,8 @@ MyOS/
 ├── NiltyOswllpaper.jpg    # Hintergrundbild
 ├── rose.png               # Logo
 └── *.png                  # Icons der Taskleiste
+├── screenshots/
+│   └── [screenshot].png #screenshot von web        
 ```
 
 ## 💻 Terminal-Befehle

@@ -3,6 +3,8 @@
 **MyOS** ist ein Hobbyprojekt von *Nilty Media*: ein kleines Betriebssystem, das komplett im Browser läuft – nur mit HTML, CSS und JavaScript, ohne Frameworks und ohne Server.
 
 > 📸 ![MyOS Boot-Screen](screenshots/boot.png)
+> ![MyOS Boot-Screen](screenshots/login.png)
+> ![MyOS Boot-Screen](screenshots/desktop.png)
 
 ## ✨ Features
 

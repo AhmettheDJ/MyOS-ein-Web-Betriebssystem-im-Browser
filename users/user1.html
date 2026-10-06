@@ -303,6 +303,62 @@
             margin-right: 8px;
         }
 
+        /* ---------------- NOTES ---------------- */
+.notes-app { display: flex;
+            flex-direction: column; 
+            height: 100%; }
+.notes-toolbar {
+    display: flex; 
+    gap: 6px; 
+    padding: 8px; 
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.notes-toolbar button {
+    background: #333;
+    color: #fff; border: none; 
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.notes-toolbar button:hover {
+    background: var(--accent-color);
+}
+.notes-toolbar select, 
+.notes-toolbar input {
+    min-width: 0;
+    background: #111;
+    color: #fff; 
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px 8px;
+    outline: none; 
+    font-size: 13px;
+}
+.notes-toolbar select { 
+            width: 130px;
+                    }
+.notes-toolbar input {
+    flex: 1;
+}
+#notes-text {
+    flex: 1;
+    resize: none;
+    background: #111;
+    color: #eee; 
+    border: none; 
+    outline: none;
+    padding: 12px; 
+    font-family: Consolas, 'Courier New', monospace; 
+    font-size: 14px;
+    line-height: 1.5; 
+    user-select: text; 
+    -webkit-user-select: text;
+}
+.notes-status { padding: 4px 10px; font-size: 12px; color: #aaa; background: rgba(255, 255, 255, 0.05); }
+
         /* ---------------- POPUP MENÜS ---------------- */
         #system-menu,
         #power-menu {
@@ -421,6 +477,9 @@
                 <div class="taskbar-icon" title="App Store" onclick="openApp('Store')">
                     <img src="../store.png" alt="Store">
                 </div>
+                 <div class="taskbar-icon" title="notes" onclick="openApp('Store')">
+                    <img src="../notes.png" alt="notes">
+                </div>
             </div>
 
             <div class="taskbar-right">
@@ -502,6 +561,138 @@ function getNodeByPath(pathArray) {
     }
     return current;
 }
+
+
+        /* ---------------- SPEICHERN (localStorage) ---------------- */
+function saveVFS() {
+    try { localStorage.setItem('myos-vfs', JSON.stringify(vfs)); } catch (e) {}
+}
+function loadVFS() {
+    try {
+        const saved = localStorage.getItem('myos-vfs');
+        if (saved) vfs.children = JSON.parse(saved).children;
+    } catch (e) {}
+}
+loadVFS();
+
+
+        /* ---------------- NOTES APP ---------------- */
+const NOTES_PATH = ["home", "user1", "Dokumente"];
+
+function getNotesDir() {
+    let node = vfs;
+    for (const p of NOTES_PATH) {
+        node.children[p] = node.children[p] || { type: "dir", children: {} };
+        node = node.children[p];
+    }
+    return node;
+}
+
+function notesHTML() {
+    return `
+        <div class="notes-app">
+            <div class="notes-toolbar">
+                <button onclick="notesNew()">📄 Neu</button>
+                <select id="notes-select" onchange="notesOpen(this.value)"></select>
+                <input id="notes-name" placeholder="dateiname.txt">
+                <button onclick="notesSave()">💾 Speichern</button>
+                <button onclick="notesDownload()" title="Als .txt herunterladen">⬇️</button>
+            </div>
+            <textarea id="notes-text" spellcheck="false" placeholder="Schreibe hier..."></textarea>
+            <div class="notes-status" id="notes-status">Neue Notiz</div>
+        </div>`;
+}
+
+function initNotes() {
+    notesRefreshList();
+    document.getElementById('notes-text').addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            notesSave();
+        }
+    });
+}
+
+function notesSetStatus(msg) {
+    const el = document.getElementById('notes-status');
+    if (el) el.innerText = msg;
+}
+
+function notesRefreshList(selected = '') {
+    const sel = document.getElementById('notes-select');
+    if (!sel) return;
+    const dir = getNotesDir();
+    sel.innerHTML = '';
+    const first = document.createElement('option');
+    first.value = '';
+    first.textContent = 'Datei öffnen…';
+    sel.appendChild(first);
+    Object.keys(dir.children)
+        .filter(n => dir.children[n].type === 'file')
+        .sort()
+        .forEach(n => {
+            const o = document.createElement('option');
+            o.value = n;
+            o.textContent = n;
+            sel.appendChild(o);
+        });
+    sel.value = selected;
+}
+
+function notesNew() {
+    document.getElementById('notes-text').value = '';
+    document.getElementById('notes-name').value = '';
+    notesRefreshList();
+    notesSetStatus('Neue Notiz');
+}
+
+function notesOpen(name) {
+    if (!name) return;
+    const file = getNotesDir().children[name];
+    if (!file || file.type !== 'file') return;
+    document.getElementById('notes-text').value = file.content;
+    document.getElementById('notes-name').value = name;
+    notesSetStatus(`Geöffnet: /${NOTES_PATH.join('/')}/${name}`);
+}
+
+function notesSave() {
+    const nameInput = document.getElementById('notes-name');
+    let name = nameInput.value.trim().replace(/[\/\\]/g, '');
+    if (!name) {
+        notesSetStatus('⚠️ Bitte einen Dateinamen eingeben');
+        nameInput.focus();
+        return;
+    }
+    if (!name.includes('.')) name += '.txt';
+    nameInput.value = name;
+
+    const dir = getNotesDir();
+    const existing = dir.children[name];
+    if (existing && existing.type === 'dir') {
+        notesSetStatus('⚠️ Das ist ein Ordner');
+        return;
+    }
+    const selected = document.getElementById('notes-select').value;
+    if (existing && selected !== name && !confirm(`'${name}' existiert schon. Überschreiben?`)) return;
+
+    dir.children[name] = { type: 'file', content: document.getElementById('notes-text').value };
+    saveVFS();
+    notesRefreshList(name);
+    notesSetStatus(`✅ Gespeichert: /${NOTES_PATH.join('/')}/${name}`);
+}
+
+function notesDownload() {
+    const name = document.getElementById('notes-name').value.trim() || 'notiz.txt';
+    const text = document.getElementById('notes-text').value;
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name.includes('.') ? name : name + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+        
 
 /* ---------------- 2. UI LOGIK & CLOCK ---------------- */
 function updateClock() {
@@ -675,7 +866,11 @@ function openApp(appName, customContent = null) {
                 <p><b>Entwickler:</b> Nilty Media</p>
             </div>
         `;
-    } else {
+    } 
+     else if (appName === 'Notes') {          // <-- neu
+        bodyContent = notesHTML();
+     }
+    else {
         bodyContent = `<p>App <b>${appName}</b> wurde gestartet.</p>`;
     }
 
@@ -702,6 +897,8 @@ function openApp(appName, customContent = null) {
 
     if (appName === 'Explorer') renderExplorer();
     if (appName === 'Terminal') updateTerminalPrompt();
+    if (appName === 'Notes') initNotes(); 
+    
 }
 
 function closeApp(windowId) {

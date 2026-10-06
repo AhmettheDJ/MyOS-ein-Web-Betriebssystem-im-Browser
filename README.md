@@ -61,7 +61,7 @@ MyOS/
 
 ## 🗺️ Geplant
 
-- [ ] Fenster verschiebbar machen
+- [ ✅] Fenster verschiebbar machen
 - [ ] Texteditor
 - [ ] Dateien im Terminal erstellen (`touch`, `mkdir`)
 - [ ] Desktop für User 2
